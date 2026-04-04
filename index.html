@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MD Editor</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background: #f7f6f3;
+    color: #1a1a1a;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: #fff;
+    border-bottom: 1px solid #e5e5e5;
+    flex-shrink: 0;
+  }
+
+  .copy-btn {
+    padding: 6px 16px;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    background: #fff;
+    color: #444;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .copy-btn:hover { background: #f0f0f0; }
+  .copy-btn.copied { color: #4caf50; border-color: #4caf50; }
+
+  main {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+
+  #editor {
+    width: 50%;
+    height: 100%;
+    padding: 32px;
+    border: none;
+    border-right: 1px solid #e5e5e5;
+    outline: none;
+    resize: none;
+    background: #f7f6f3;
+    font-family: 'SF Mono', 'Menlo', monospace;
+    font-size: 14px;
+    line-height: 1.8;
+    color: #555;
+  }
+
+  #preview {
+    width: 50%;
+    height: 100%;
+    padding: 32px 40px;
+    overflow-y: auto;
+  }
+
+  #preview h1, #preview h2, #preview h3 {
+    margin: 1.5em 0 0.5em;
+    line-height: 1.3;
+  }
+
+  #preview h1 { font-size: 26px; }
+  #preview h2 { font-size: 20px; }
+  #preview h3 { font-size: 17px; }
+
+  #preview p { margin: 0.8em 0; line-height: 1.8; }
+
+  #preview ul, #preview ol {
+    margin: 0.8em 0;
+    padding-left: 1.5em;
+    line-height: 1.8;
+  }
+
+  #preview code {
+    background: #efefef;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'SF Mono', 'Menlo', monospace;
+    font-size: 13px;
+  }
+
+  #preview pre {
+    background: #efefef;
+    padding: 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 1em 0;
+  }
+
+  #preview pre code { background: none; padding: 0; }
+
+  #preview blockquote {
+    border-left: 3px solid #ccc;
+    padding-left: 16px;
+    color: #666;
+    margin: 1em 0;
+  }
+
+  #preview hr {
+    border: none;
+    border-top: 1px solid #e5e5e5;
+    margin: 2em 0;
+  }
+
+  #preview a { color: #0066cc; }
+
+  .label {
+    font-size: 11px;
+    color: #aaa;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="label">MD Editor</div>
+  <button class="copy-btn" onclick="copyMd()">Copy MD</button>
+</header>
+
+<main>
+  <textarea id="editor" placeholder="ここにMarkdownを書く..."></textarea>
+  <div id="preview"></div>
+</main>
+
+<script>
+  const editor = document.getElementById('editor');
+  const preview = document.getElementById('preview');
+
+  function render() {
+    preview.innerHTML = marked.parse(editor.value);
+  }
+
+  editor.addEventListener('input', render);
+
+  function copyMd() {
+    navigator.clipboard.writeText(editor.value);
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Copy MD';
+      btn.classList.remove('copied');
+    }, 1500);
+  }
+</script>
+</body>
+</html>
