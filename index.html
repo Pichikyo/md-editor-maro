@@ -301,22 +301,32 @@
   editor.addEventListener('mouseup', () => {
     if (syncLock) return;
     const sel = editor.value.substring(editor.selectionStart, editor.selectionEnd).trim();
-    if (sel.length >= 2) { syncLock = true; highlightInPreview(sel); syncLock = false; }
+    if (sel.length >= 2) {
+      syncLock = true;
+      highlightInPreview(sel);
+      setTimeout(() => { syncLock = false; }, 100);
+    }
   });
 
   editor.addEventListener('keyup', (e) => {
     if (!e.shiftKey || syncLock) return;
     const sel = editor.value.substring(editor.selectionStart, editor.selectionEnd).trim();
-    if (sel.length >= 2) { syncLock = true; highlightInPreview(sel); syncLock = false; }
+    if (sel.length >= 2) {
+      syncLock = true;
+      highlightInPreview(sel);
+      setTimeout(() => { syncLock = false; }, 100);
+    }
   });
 
-  document.addEventListener('selectionchange', () => {
+  preview.addEventListener('mouseup', () => {
     if (syncLock) return;
     const sel = window.getSelection();
     if (!sel || sel.isCollapsed) return;
-    if (preview.contains(sel.anchorNode)) {
-      const text = sel.toString().trim();
-      if (text.length >= 2) { syncLock = true; selectInEditor(text); syncLock = false; }
+    const text = sel.toString().trim();
+    if (text.length >= 2) {
+      syncLock = true;
+      selectInEditor(text);
+      setTimeout(() => { syncLock = false; }, 100);
     }
   });
 
