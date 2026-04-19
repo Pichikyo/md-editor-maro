@@ -69,8 +69,22 @@
     justify-content: space-between;
     padding: 10px 20px;
     flex-shrink: 0;
-    gap: 12px;
   }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .divider-v {
+    width: 1px;
+    height: 18px;
+    background: #e0e0e0;
+    margin: 0 4px;
+  }
+
+  body.dark .divider-v { background: #444; }
 
   .themes {
     display: flex;
@@ -200,13 +214,16 @@
 
 <header>
   <div class="label">md Editor MARO</div>
-  <div class="themes">
-    <button class="theme-btn active" onclick="setTheme('modern', this)">Light</button>
-    <button class="theme-btn" onclick="setTheme('warm', this)">Warm</button>
-    <button class="theme-btn" onclick="setTheme('dark', this)">Dark</button>
+  <div class="header-actions">
+    <div class="themes">
+      <button class="theme-btn active" onclick="setTheme('modern', this)">Light</button>
+      <button class="theme-btn" onclick="setTheme('warm', this)">Warm</button>
+      <button class="theme-btn" onclick="setTheme('dark', this)">Dark</button>
+    </div>
+    <div class="divider-v"></div>
+    <button class="copy-btn" onclick="copyMd()">Copy MD</button>
+    <button class="copy-btn" onclick="downloadMd()">Download MD</button>
   </div>
-  <button class="copy-btn" onclick="copyMd()">Copy MD</button>
-  <button class="copy-btn" onclick="downloadMd()">Download MD</button>
 </header>
 
 <main id="main">
