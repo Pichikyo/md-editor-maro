@@ -123,8 +123,17 @@
     overflow: hidden;
   }
 
+  #divider {
+    width: 5px;
+    cursor: col-resize;
+    background: transparent;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  #divider:hover, #divider:active { background: rgba(128,128,128,0.3); }
+
   #editor {
-    width: 50%;
+    width: calc(50% - 5px);
     height: 100%;
     padding: 32px;
     border: none;
@@ -135,7 +144,7 @@
   }
 
   #preview {
-    width: 50%;
+    width: calc(50% - 5px);
     height: 100%;
     padding: 32px 40px;
     overflow-y: auto;
@@ -192,24 +201,30 @@
 <header>
   <div class="label">md Editor MARO</div>
   <div class="themes">
-    <button class="theme-btn active" onclick="setTheme('modern', this)">Notion</button>
+    <button class="theme-btn active" onclick="setTheme('modern', this)">Light</button>
     <button class="theme-btn" onclick="setTheme('warm', this)">Warm</button>
     <button class="theme-btn" onclick="setTheme('dark', this)">Dark</button>
   </div>
   <button class="copy-btn" onclick="copyMd()">Copy MD</button>
 </header>
 
-<main>
+<main id="main">
   <textarea id="editor" placeholder="ここにMarkdownを書く..."></textarea>
+  <div id="divider"></div>
   <div id="preview"></div>
 </main>
 
 <script>
   const editor = document.getElementById('editor');
   const preview = document.getElementById('preview');
+  const divider = document.getElementById('divider');
+  const main = document.getElementById('main');
+
+  let lastRenderedHTML = '';
 
   function render() {
-    preview.innerHTML = marked.parse(editor.value);
+    lastRenderedHTML = marked.parse(editor.value);
+    preview.innerHTML = lastRenderedHTML;
   }
 
   editor.addEventListener('input', render);
@@ -230,6 +245,103 @@
       btn.classList.remove('copied');
     }, 1500);
   }
+
+  // ① ドラッグ＆ドロップでmdファイルを開く
+  main.addEventListener('dragover', (e) => { e.preventDefault(); });
+  main.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        editor.value = ev.target.result;
+        render();
+      };
+      reader.readAsText(file, 'UTF-8');
+    }
+  });
+
+  // ② 選択テキスト同期
+  let syncLock = false;
+
+  function highlightInPreview(text) {
+    preview.innerHTML = lastRenderedHTML;
+    if (!text || text.length < 2) return;
+    const walker = document.createTreeWalker(preview, NodeFilter.SHOW_TEXT);
+    let node;
+    while (node = walker.nextNode()) {
+      const idx = node.nodeValue.indexOf(text);
+      if (idx !== -1) {
+        try {
+          const range = document.createRange();
+          range.setStart(node, idx);
+          range.setEnd(node, idx + text.length);
+          const mark = document.createElement('mark');
+          mark.style.cssText = 'background:rgba(255,200,0,0.4);border-radius:2px;padding:0;';
+          range.surroundContents(mark);
+          mark.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } catch(e) {}
+        break;
+      }
+    }
+  }
+
+  function selectInEditor(text) {
+    if (!text || text.length < 2) return;
+    const idx = editor.value.indexOf(text);
+    if (idx !== -1) {
+      editor.focus();
+      editor.setSelectionRange(idx, idx + text.length);
+      const linesBefore = editor.value.substring(0, idx).split('\n').length;
+      const lineHeight = parseFloat(getComputedStyle(editor).lineHeight) || 24;
+      editor.scrollTop = Math.max(0, (linesBefore - 3) * lineHeight);
+    }
+  }
+
+  editor.addEventListener('mouseup', () => {
+    if (syncLock) return;
+    const sel = editor.value.substring(editor.selectionStart, editor.selectionEnd).trim();
+    if (sel.length >= 2) { syncLock = true; highlightInPreview(sel); syncLock = false; }
+  });
+
+  editor.addEventListener('keyup', (e) => {
+    if (!e.shiftKey || syncLock) return;
+    const sel = editor.value.substring(editor.selectionStart, editor.selectionEnd).trim();
+    if (sel.length >= 2) { syncLock = true; highlightInPreview(sel); syncLock = false; }
+  });
+
+  document.addEventListener('selectionchange', () => {
+    if (syncLock) return;
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed) return;
+    if (preview.contains(sel.anchorNode)) {
+      const text = sel.toString().trim();
+      if (text.length >= 2) { syncLock = true; selectInEditor(text); syncLock = false; }
+    }
+  });
+
+  // ③ ドラッグで仕切りを左右に動かす
+  let dragging = false;
+  divider.addEventListener('mousedown', (e) => {
+    dragging = true;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', (e) => {
+    if (!dragging) return;
+    const rect = main.getBoundingClientRect();
+    let ratio = (e.clientX - rect.left) / rect.width * 100;
+    ratio = Math.max(10, Math.min(90, ratio));
+    editor.style.width = ratio + '%';
+    preview.style.width = (100 - ratio) + '%';
+  });
+  document.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false;
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  });
 </script>
 </body>
 </html>
