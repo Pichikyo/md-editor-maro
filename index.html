@@ -278,11 +278,11 @@
 
   editor.addEventListener('input', () => {
     render();
-    localStorage.setItem('maro-editor-content', editor.value);
+    sessionStorage.setItem('maro-editor-content', editor.value);
   });
 
   // リロード後に内容を復元
-  const saved = localStorage.getItem('maro-editor-content');
+  const saved = sessionStorage.getItem('maro-editor-content');
   if (saved) { editor.value = saved; render(); }
 
   function setTheme(theme, btn) {
@@ -296,7 +296,7 @@
     editor.value = '';
     preview.innerHTML = '';
     lastRenderedHTML = '';
-    localStorage.removeItem('maro-editor-content');
+    sessionStorage.removeItem('maro-editor-content');
   }
 
   function downloadMd() {
