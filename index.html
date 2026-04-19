@@ -386,7 +386,11 @@
   preview.addEventListener('mouseup', () => {
     if (syncLock) return;
     const sel = window.getSelection();
-    if (!sel || sel.isCollapsed) return;
+    if (!sel || sel.isCollapsed) {
+      editorHl.style.opacity = '0';
+      setTimeout(() => { editorHl.style.display = 'none'; }, 300);
+      return;
+    }
     const text = sel.toString().trim();
     if (text.length >= 2) {
       syncLock = true;
@@ -408,7 +412,7 @@
     const rect = main.getBoundingClientRect();
     let ratio = (e.clientX - rect.left) / rect.width * 100;
     ratio = Math.max(10, Math.min(90, ratio));
-    editor.style.width = ratio + '%';
+    editorWrap.style.width = ratio + '%';
     preview.style.width = (100 - ratio) + '%';
   });
   document.addEventListener('mouseup', () => {
