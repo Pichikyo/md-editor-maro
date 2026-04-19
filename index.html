@@ -206,6 +206,7 @@
     <button class="theme-btn" onclick="setTheme('dark', this)">Dark</button>
   </div>
   <button class="copy-btn" onclick="copyMd()">Copy MD</button>
+  <button class="copy-btn" onclick="downloadMd()">Download MD</button>
 </header>
 
 <main id="main">
@@ -233,6 +234,15 @@
     document.body.className = theme;
     document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
+  }
+
+  function downloadMd() {
+    const blob = new Blob([editor.value], { type: 'text/markdown' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'document.md';
+    a.click();
+    URL.revokeObjectURL(a.href);
   }
 
   function copyMd() {
@@ -290,7 +300,6 @@
     if (!text || text.length < 2) return;
     const idx = editor.value.indexOf(text);
     if (idx !== -1) {
-      editor.focus();
       editor.setSelectionRange(idx, idx + text.length);
       const linesBefore = editor.value.substring(0, idx).split('\n').length;
       const lineHeight = parseFloat(getComputedStyle(editor).lineHeight) || 24;
