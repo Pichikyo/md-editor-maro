@@ -273,7 +273,14 @@
     preview.innerHTML = lastRenderedHTML;
   }
 
-  editor.addEventListener('input', render);
+  editor.addEventListener('input', () => {
+    render();
+    localStorage.setItem('maro-editor-content', editor.value);
+  });
+
+  // リロード後に内容を復元
+  const saved = localStorage.getItem('maro-editor-content');
+  if (saved) { editor.value = saved; render(); }
 
   function setTheme(theme, btn) {
     document.body.className = theme;
@@ -282,7 +289,7 @@
   }
 
   function downloadMd() {
-    const blob = new Blob([editor.value], { type: 'text/markdown' });
+    const blob = new Blob([editor.value], { type: 'text/plain' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = 'document.md';
