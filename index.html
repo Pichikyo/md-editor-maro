@@ -146,8 +146,14 @@
   }
   #divider:hover, #divider:active { background: rgba(128,128,128,0.3); }
 
-  #editor {
+  #editor-wrap {
     width: calc(50% - 5px);
+    height: 100%;
+    position: relative;
+  }
+
+  #editor {
+    width: 100%;
     height: 100%;
     padding: 32px;
     border: none;
@@ -208,6 +214,22 @@
   body.modern #preview th { background: #f6f6f6; }
   body.modern #preview th, body.modern #preview td { border-color: #efefef; }
   body.modern #preview tr:nth-child(even) { background: #fafafa; }
+
+  #editor-wrap {
+    position: relative;
+    width: calc(50% - 5px);
+    height: 100%;
+  }
+  #editor-wrap #editor { width: 100%; }
+  #editor-hl {
+    position: absolute;
+    left: 0; right: 0;
+    background: rgba(255, 200, 0, 0.25);
+    pointer-events: none;
+    display: none;
+    border-radius: 2px;
+    transition: opacity 0.3s;
+  }
 </style>
 </head>
 <body class="modern">
@@ -227,7 +249,10 @@
 </header>
 
 <main id="main">
-  <textarea id="editor" placeholder="ここにMarkdownを書く..."></textarea>
+  <div id="editor-wrap">
+    <textarea id="editor" placeholder="ここにMarkdownを書く..."></textarea>
+    <div id="editor-hl"></div>
+  </div>
   <div id="divider"></div>
   <div id="preview"></div>
 </main>
@@ -237,6 +262,9 @@
   const preview = document.getElementById('preview');
   const divider = document.getElementById('divider');
   const main = document.getElementById('main');
+  const editorWrap = document.getElementById('editor-wrap');
+  const editorHl = document.getElementById('editor-hl');
+  let editorHlTimer = null;
 
   let lastRenderedHTML = '';
 
@@ -316,12 +344,21 @@
   function selectInEditor(text) {
     if (!text || text.length < 2) return;
     const idx = editor.value.indexOf(text);
-    if (idx !== -1) {
-      editor.setSelectionRange(idx, idx + text.length);
-      const linesBefore = editor.value.substring(0, idx).split('\n').length;
-      const lineHeight = parseFloat(getComputedStyle(editor).lineHeight) || 24;
-      editor.scrollTop = Math.max(0, (linesBefore - 3) * lineHeight);
-    }
+    if (idx === -1) return;
+    const before = editor.value.substring(0, idx);
+    const linesBefore = before.split('\n').length - 1;
+    const linesInText = text.split('\n').length - 1;
+    const lineHeight = parseFloat(getComputedStyle(editor).lineHeight) || 24;
+    const paddingTop = parseFloat(getComputedStyle(editor).paddingTop) || 32;
+    editor.scrollTop = Math.max(0, (linesBefore - 3) * lineHeight);
+    const top = paddingTop + linesBefore * lineHeight - editor.scrollTop;
+    const height = (linesInText + 1) * lineHeight;
+    editorHl.style.top = top + 'px';
+    editorHl.style.height = height + 'px';
+    editorHl.style.display = 'block';
+    editorHl.style.opacity = '1';
+    clearTimeout(editorHlTimer);
+    editorHlTimer = setTimeout(() => { editorHl.style.opacity = '0'; setTimeout(() => { editorHl.style.display = 'none'; }, 300); }, 2000);
   }
 
   editor.addEventListener('mouseup', () => {
@@ -331,6 +368,8 @@
       syncLock = true;
       highlightInPreview(sel);
       setTimeout(() => { syncLock = false; }, 100);
+    } else {
+      preview.innerHTML = lastRenderedHTML;
     }
   });
 
